@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Authorization;
 using TarefasLuby.V1.Repositories.Contracts;
 using TarefasLuby.V1.Repositories;
 using TarefasLuby.V1.Models;
+using Swashbuckle.AspNetCore.Swagger;
+using System.Collections.Generic;
+using Microsoft.OpenApi.Models;
 
 namespace TarefasLuby
 {
@@ -86,6 +89,46 @@ namespace TarefasLuby
                    return System.Threading.Tasks.Task.CompletedTask;
                };
            });
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "TarefasLuby", Version = "v1" });
+                var security = new Dictionary<string, IEnumerable<string>>
+                {
+                    {"Bearer", new string[] { }},
+                };
+
+                c.AddSecurityDefinition(
+                    "Bearer",
+                    new OpenApiSecurityScheme
+                    {
+                        Description =
+         "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+                        Name = "Authorization",
+                        In = ParameterLocation.Header,
+                        Type = SecuritySchemeType.ApiKey,
+                        Scheme = "Bearer"
+                    });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+
+                        },
+                        new List<string>()
+                    }
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -105,6 +148,14 @@ namespace TarefasLuby
             app.UseAuthorization();
 
             app.UseAuthentication();
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(opt =>
+            {
+                opt.SwaggerEndpoint("/swagger/v1/swagger.json", "Tarefas Luby V1");
+                opt.RoutePrefix = string.Empty;
+            });
 
             app.UseEndpoints(endpoints =>
             {

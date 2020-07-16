@@ -52,9 +52,9 @@ namespace TarefasLuby.V1.Controllers
         }
 
         [HttpPost("renew")]
-        public ActionResult Renew([FromBody]TokenDTO tokenDTO)
+        public ActionResult Renew([FromBody]RefreshToken tokenDTO)
         {
-            var refreshTokenDb = _tokenRepository.GetToken(tokenDTO.RefreshToken);
+            var refreshTokenDb = _tokenRepository.GetToken(tokenDTO.TokenRefresh);
 
             if(refreshTokenDb == null)
                 return NotFound();
@@ -68,7 +68,7 @@ namespace TarefasLuby.V1.Controllers
             return GenerateToken(user);
         }
 
-        [HttpPost("")]
+        [HttpPost("create-user")]
         public ActionResult CreateUser([FromBody] User user)
         {
             if (ModelState.IsValid)
@@ -95,7 +95,7 @@ namespace TarefasLuby.V1.Controllers
             }
         }
 
-        public TokenDTO BuildToken(AppUser appUser)
+        private RefreshToken BuildToken(AppUser appUser)
         {
             var claims = new[]
             {
@@ -118,11 +118,11 @@ namespace TarefasLuby.V1.Controllers
             var refreshToken = Guid.NewGuid().ToString();
             var expRefreshToken = DateTime.UtcNow.AddHours(2);
 
-            var tokenDto = new TokenDTO
+            var tokenDto = new RefreshToken
             {
                 Token = tokenString,
                 Expiration = exp,
-                RefreshToken = refreshToken,
+                TokenRefresh = refreshToken,
                 ExpirationRefreshToken = expRefreshToken
             };
 
@@ -136,7 +136,7 @@ namespace TarefasLuby.V1.Controllers
             var tokenModel = new Token()
             {
                 Expiration = token.Expiration,
-                RefreshToken = token.RefreshToken,
+                RefreshToken = token.TokenRefresh,
                 ExpirationRefreshToken = token.ExpirationRefreshToken,
                 User = appUser,
                 Created = DateTime.Now,
